@@ -292,84 +292,86 @@ private void drawCellImage(Graphics g, int cell, int row, int column) {
 	class MinesAdapter extends MouseAdapter {
 
 		/**
-		 * Gère l'événement de clic de souris.
-		 * @param e l'objet MouseEvent qui contient les informations sur l'événement de clic de souris
-		 * @return none
-		 */
-		public void mousePressed(MouseEvent e) {
+ * Gère l'événement de clic de souris.
+ * @param e l'objet MouseEvent qui contient les informations sur l'événement de clic de souris
+ * @return none
+ */
+public void mousePressed(MouseEvent e) {
+    int x = e.getX();
+    int y = e.getY();
 
-			// Récupère les coordonnées de la souris
-			int x = e.getX();
-			int y = e.getY();
+    int cellRow = x / CELL_SIZE;
+    int cellColumn = y / CELL_SIZE;
 
-			// Calcule la colonne et la rangée de la cellule cliquée
-			int cellRow = x / CELL_SIZE;
-			int cellColumn = y / CELL_SIZE;
+    boolean mustRepaint = false;
 
-			// Variable pour indiquer si la méthode doit redessiner le champ de jeu
-			boolean mustRepaint = false;
+    if (!inGame) {
+        newGame();
+        repaint();
+    }
 
-			// Si le jeu est terminé, commence une nouvelle partie et redessine le champ de jeu
-			if (!inGame) {
-				newGame();
-				repaint();
-			}
+    if (isClickWithinGameBounds(x, y)) {
+        if (isRightMouseButtonClicked(e)) {
+            mustRepaint = handleRightClick(cellRow, cellColumn);
+        } else {
+            mustRepaint = handleLeftClick(cellRow, cellColumn);
+        }
 
-			// Vérifie si le clic de souris est dans les limites du champ de jeu
-			if ((x < COLUMNS * CELL_SIZE) && (y < ROWS * CELL_SIZE)) {
+        if (mustRepaint) {
+            repaint();
+        }
+    }
+}
 
-				// Si le clic est avec le bouton droit de la souris
-				if (e.getButton() == MouseEvent.BUTTON3) {
+private boolean isClickWithinGameBounds(int x, int y) {
+    return (x < COLUMNS * CELL_SIZE) && (y < ROWS * CELL_SIZE);
+}
 
-					// Vérifie si la cellule cliquée est marquée
-					if (field[(cellColumn * COLUMNS) + cellRow] > MINE_CELL) {
-						mustRepaint = true;
+private boolean isRightMouseButtonClicked(MouseEvent e) {
+    return e.getButton() == MouseEvent.BUTTON3;
+}
 
-						// Si la cellule est couverte, ajoute un marqueur de mine
-						if (field[(cellColumn * COLUMNS) + cellRow] <= COVERED_MINE_CELL) {
-							if (minesLeft > 0) {
-								field[(cellColumn * COLUMNS) + cellRow] += MARK_FOR_CELL;
-								minesLeft--;
-								statusbar.setText(Integer.toString(minesLeft));
-							} else
-								statusbar.setText("No marks left");
-						} else {
+private boolean handleRightClick(int cellRow, int cellColumn) {
+    int cellIndex = (cellColumn * COLUMNS) + cellRow;
+    if (field[cellIndex] > MINE_CELL) {
+        if (field[cellIndex] <= COVERED_MINE_CELL) {
+            if (minesLeft > 0) {
+                field[cellIndex] += MARK_FOR_CELL;
+                minesLeft--;
+                statusbar.setText(Integer.toString(minesLeft));
+            } else {
+                statusbar.setText("No marks left");
+            }
+        } else {
+            field[cellIndex] -= MARK_FOR_CELL;
+            minesLeft++;
+            statusbar.setText(Integer.toString(minesLeft));
+        }
+        return true;
+    }
+    return false;
+}
 
-							// Si la cellule est déjà marquée, enlève le marqueur de mine
-							field[(cellColumn * COLUMNS) + cellRow] -= MARK_FOR_CELL;
-							minesLeft++;
-							statusbar.setText(Integer.toString(minesLeft));
-						}
-					}
+private boolean handleLeftClick(int cellRow, int cellColumn) {
+    int cellIndex = (cellColumn * COLUMNS) + cellRow;
+    if (field[cellIndex] > COVERED_MINE_CELL) {
+        return false;
+    }
 
-					// Si le clic est avec le bouton gauche de la souris
-				} else {
+    if ((field[cellIndex] > MINE_CELL) && (field[cellIndex] < MARKED_MINE_CELL)) {
+        field[cellIndex] -= COVER_FOR_CELL;
 
-					// Vérifie si la cellule cliquée est couverte ou marquée
-					if (field[(cellColumn * COLUMNS) + cellRow] > COVERED_MINE_CELL) {
-						return;
-					}
+        if (field[cellIndex] == MINE_CELL) {
+            inGame = false;
+        }
+        if (field[cellIndex] == EMPTY_CELL) {
+            findEmptyCells(cellIndex);
+        }
+        return true;
+    }
+    return false;
+}
 
-					// Si la cellule cliquée contient une mine, le jeu est terminé
-					if ((field[(cellColumn * COLUMNS) + cellRow] > MINE_CELL) &&
-							(field[(cellColumn * COLUMNS) + cellRow] < MARKED_MINE_CELL)) {
-
-						field[(cellColumn * COLUMNS) + cellRow] -= COVER_FOR_CELL;
-						mustRepaint = true;
-
-						if (field[(cellColumn * COLUMNS) + cellRow] == MINE_CELL)
-							inGame = false;
-						if (field[(cellColumn * COLUMNS) + cellRow] == EMPTY_CELL)
-							findEmptyCells((cellColumn * COLUMNS) + cellRow);
-					}
-				}
-
-				// Si la méthode doit redessiner le champ de jeu, appelle la méthode repaint()
-				if (mustRepaint)
-					repaint();
-
-			}
-		}
 	}
 
 }
