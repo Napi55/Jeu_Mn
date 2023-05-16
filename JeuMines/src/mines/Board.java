@@ -73,93 +73,79 @@ public class Board extends JPanel {
 		newGame();
 	}
 
-
-
-	/**
+/**
 	 * Initialise une nouvelle partie de démineur.
 	 * Génère un nouveau plateau de jeu avec des mines aléatoires.
 	 * @param none
 	 * @return none
 	 */
+
 	public void newGame() {
+    initializeVariablesForNewGame();
+    initializeGameBoard();
+    placeMinesRandomly();
+}
 
-		// Initialise les variables nécessaires pour la nouvelle partie
-		int currentColumn;
-		int i = 0;
-		int position = 0;
-		int cell = 0;
-		inGame = true;
-		minesLeft = mines;
-		field = new int[ALL_CELLS];
+private void initializeVariablesForNewGame() {
+    inGame = true;
+    minesLeft = mines;
+    field = new int[ALL_CELLS];
+}
 
-		// Initialise chaque cellule du plateau de jeu avec une case cachée
-		for (i = 0; i < ALL_CELLS; i++)
-			field[i] = COVER_FOR_CELL;
+private void initializeGameBoard() {
+    for (int i = 0; i < ALL_CELLS; i++) {
+        field[i] = COVER_FOR_CELL;
+    }
+    statusbar.setText(Integer.toString(minesLeft));
+}
 
-		// Affiche le nombre de mines restantes dans l'étiquette de statut
-		statusbar.setText(Integer.toString(minesLeft));
+private void placeMinesRandomly() {
+    int i = 0;
+    while (i < mines) {
+        int position = (int) (ALL_CELLS * random.nextDouble());
+        if (isValidMinePosition(position)) {
+            int currentColumn = position % COLUMNS;
+            placeMineAndUpdateAdjacentCells(position, currentColumn);
+            i++;
+        }
+    }
+}
 
-		// Place les mines aléatoirement sur le plateau de jeu
-		i = 0;
-		while (i < mines) {
+private boolean isValidMinePosition(int position) {
+    return (position < ALL_CELLS) && (field[position] != COVERED_MINE_CELL);
+}
 
-			// Génère une position aléatoire pour la mine
-			position = (int) (ALL_CELLS * random.nextDouble());
+private void placeMineAndUpdateAdjacentCells(int position, int currentColumn) {
+    field[position] = COVERED_MINE_CELL;
+    updateAdjacentCells(position, currentColumn);
+}
 
-			// Vérifie que la position est valide et qu'il n'y a pas déjà une mine à cet endroit
-			if ((position < ALL_CELLS) && (field[position] != COVERED_MINE_CELL)) {
+private void updateAdjacentCells(int position, int currentColumn) {
+    int[] neighborOffsets = {-1, 0, 1};
 
-				// Calcule la colonne actuelle de la position
-				currentColumn = position % COLUMNS;
+    for (int rowOffset : neighborOffsets) {
+        for (int colOffset : neighborOffsets) {
+            if (rowOffset == 0 && colOffset == 0) {
+                continue;
+            }
 
-				// Place une mine à la position choisie
-				field[position] = COVERED_MINE_CELL;
-				i++;
+            int cell = position + (rowOffset * COLUMNS) + colOffset;
+            if (isValidCell(cell, currentColumn + colOffset)) {
+                incrementAdjacentMines(cell);
+            }
+        }
+    }
+}
 
-				// Incrémente le nombre de mines adjacentes pour chaque cellule voisine
-				if (currentColumn > 0) { 
-					cell = position - 1 - COLUMNS;
-					coverMineCell(cell);
-					cell = position - 1;
-					if (cell >= 0)
-						coverMineCell(cell);
+private boolean isValidCell(int cell, int newColumn) {
+    return cell >= 0 && cell < ALL_CELLS && newColumn >= 0 && newColumn < COLUMNS;
+}
 
-					cell = position + COLUMNS - 1;
-					if (cell < ALL_CELLS)
-						coverMineCell(cell);
-
-				}
-
-				cell = position - COLUMNS;
-				coverMineCell(cell);
-
-				cell = position + COLUMNS;
-				incrementAdjacentMines(cell);
-
-				if (currentColumn < (COLUMNS - 1)) {
-					cell = position - COLUMNS + 1;
-					coverMineCell(cell);
-
-					cell = position + COLUMNS + 1;
-					incrementAdjacentMines(cell);
-					cell = position + 1;
-					incrementAdjacentMines(cell);
-				}
-			}
-		}
-	}
-
-	private void incrementAdjacentMines(int cell) {
-		if (cell < ALL_CELLS && field[cell] != COVERED_MINE_CELL)
-
-			field[cell] += 1;
-	}
-
-	private void coverMineCell(int cell) {
-		if ((cell >= 0 && field[cell] != COVERED_MINE_CELL)  )
-			field[cell] += 1;
-
-	}
+private void incrementAdjacentMines(int cell) {
+    if (field[cell] != COVERED_MINE_CELL) {
+        field[cell] += 1;
+    }
+}
 
 
 	/**
