@@ -169,38 +169,32 @@ public class Board extends JPanel {
 	 * @return none
 	 */
 	public void findEmptyCells(int j) {
-		int currentColumn = j % COLUMNS;
-		int cell;
+    int currentColumn = j % COLUMNS;
+    int cell;
 
-		// Parcourt toutes les cellules adjacentes à la cellule donnée
-		if (currentColumn > 0) { 
-			cell = j - COLUMNS - 1;
-			iterateEmptyCell(cell);
+    // Parcourt toutes les cellules adjacentes à la cellule donnée
+    if (currentColumn > 0) {
+        checkAdjacentCells(j, -COLUMNS - 1, -1, COLUMNS - 1);
+    }
 
-			cell = j - 1;
-			iterateEmptyCell(cell);
+    checkAdjacentCells(j, -COLUMNS, COLUMNS);
 
-			cell = j + COLUMNS - 1;
-			iterateCell(cell);
-		}
+    if (currentColumn < (COLUMNS - 1)) {
+        checkAdjacentCells(j, -COLUMNS + 1, 1, COLUMNS + 1);
+    }
+}
 
-		cell = j - COLUMNS;
-		iterateEmptyCell(cell);
+private void checkAdjacentCells(int j, int... offsets) {
+    for (int offset : offsets) {
+        int cell = j + offset;
+        if (offset < 0) {
+            iterateEmptyCell(cell);
+        } else {
+            iterateCell(cell);
+        }
+    }
+}
 
-		cell = j + COLUMNS;
-		iterateCell(cell);
-
-		if (currentColumn < (COLUMNS - 1)) {
-			cell = j - COLUMNS + 1;
-			iterateEmptyCell(cell);
-
-			cell = j + COLUMNS + 1;
-			iterateCell(cell);
-
-			cell = j + 1;
-			iterateCell(cell);
-		}
-	}
 
 	private void iterateEmptyCell(int cell) {
 		if (cell >= 0 && field[cell] > MINE_CELL) {
