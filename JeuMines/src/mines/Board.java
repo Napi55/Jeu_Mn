@@ -53,25 +53,32 @@ public class Board extends JPanel {
 	 * @return none
 	 */
 	public Board(JLabel statusbar) {
+    initializeStatusBar(statusbar);
+    loadGameImages();
+    enableDoubleBuffering();
+    addMouseListenerForUserInput();
+    newGame();
+}
 
-		// Initialise l'étiquette de statut du jeu
-		this.statusbar = statusbar;
+private void initializeStatusBar(JLabel statusbar) {
+    this.statusbar = statusbar;
+}
 
-		// Charge les images nécessaires pour le jeu
-		images = new Image[NUM_IMAGES];
-		for (int i = 0; i < NUM_IMAGES; i++) {
-			images[i] = (new ImageIcon(getClass().getClassLoader().getResource((i) + ".gif"))).getImage();
-		}
+private void loadGameImages() {
+    images = new Image[NUM_IMAGES];
+    for (int i = 0; i < NUM_IMAGES; i++) {
+        images[i] = (new ImageIcon(getClass().getClassLoader().getResource((i) + ".gif"))).getImage();
+    }
+}
 
-		// Active le double buffering pour améliorer les performances graphiques
-		setDoubleBuffered(true);
+private void enableDoubleBuffering() {
+    setDoubleBuffered(true);
+}
 
-		// Ajoute un écouteur de souris pour gérer les clics de l'utilisateur
-		addMouseListener(new MinesAdapter());
+private void addMouseListenerForUserInput() {
+    addMouseListener(new MinesAdapter());
+}
 
-		// Démarre une nouvelle partie
-		newGame();
-	}
 
 /**
 	 * Initialise une nouvelle partie de démineur.
