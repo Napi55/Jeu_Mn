@@ -231,50 +231,55 @@ public class Board extends JPanel {
 	 * @return none
 	 */
 	public void paint(Graphics g) {
+    int cell;
+    int uncover = 0;
 
-		// Initialisation des variables
-		int cell = 0;
-		int uncover = 0;
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            cell = field[(i * COLUMNS) + j];
 
-		// Parcourt toutes les cellules du champ de jeu
-		for (int i = 0; i < ROWS; i++) {
-			for (int j = 0; j < COLUMNS; j++) {
+            if (inGame && cell == MINE_CELL) {
+                inGame = false;
+            }
 
-				// Récupère la valeur de la cellule
-				cell = field[(i * COLUMNS) + j];
+            cell = determineCellImage(cell);
 
-				// Vérifie si le jeu est terminé et s'il y a une mine dans la cellule
-				if (inGame && cell == MINE_CELL)
-					inGame = false;
+            if (inGame && cell == DRAW_COVER) {
+                uncover++;
+            }
 
-				// Détermine quelle image doit être utilisée pour la cellule
-				if (!inGame) {
-					if (cell == COVERED_MINE_CELL) {
-						cell = DRAW_MINE;
-					} else if (cell == MARKED_MINE_CELL) {
-						cell = DRAW_MARK;
-					} else if (cell > COVERED_MINE_CELL) {
-						cell = DRAW_WRONG_MARK;
-					} else if (cell > MINE_CELL) {
-						cell = DRAW_COVER;
-					}
-				} else {
-					if (cell > COVERED_MINE_CELL)
-						cell = DRAW_MARK;
-					else if (cell > MINE_CELL) {
-						cell = DRAW_COVER;
-						uncover++;
-					}
-				}
+            drawCellImage(g, cell, i, j);
+        }
+    }
 
-				// Dessine l'image appropriée pour la cellule
-				g.drawImage(images[cell], (j * CELL_SIZE),
-						(i * CELL_SIZE), this);
-			}
-		}
+    updateStatusBar(uncover);
+}
 
-		updateStatusBar(uncover);
-	}
+private int determineCellImage(int cell) {
+    if (!inGame) {
+        if (cell == COVERED_MINE_CELL) {
+            return DRAW_MINE;
+        } else if (cell == MARKED_MINE_CELL) {
+            return DRAW_MARK;
+        } else if (cell > COVERED_MINE_CELL) {
+            return DRAW_WRONG_MARK;
+        } else if (cell > MINE_CELL) {
+            return DRAW_COVER;
+        }
+    } else {
+        if (cell > COVERED_MINE_CELL) {
+            return DRAW_MARK;
+        } else if (cell > MINE_CELL) {
+            return DRAW_COVER;
+        }
+    }
+    return cell;
+}
+
+private void drawCellImage(Graphics g, int cell, int row, int column) {
+    g.drawImage(images[cell], (column * CELL_SIZE), (row * CELL_SIZE), this);
+}
+
 	// Vérifie si le jeu est terminé et met à jour la barre de statut en conséquence
 	private void updateStatusBar(int uncover) {
 
